@@ -1,61 +1,72 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-using HilresStock.Core.Models;
-using HilresStock.Core.Services;
-
-using Microsoft.Toolkit.Uwp.UI.Controls;
-
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
+﻿// <copyright file="ChartPage.xaml.cs" company="Hilres">
+// Copyright (c) Hilres. All rights reserved.
+// </copyright>
 
 namespace HilresStock.Views
 {
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using HilresStock.Core.Models;
+    using HilresStock.Core.Services;
+    using Microsoft.Toolkit.Uwp.UI.Controls;
+    using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Controls;
+
+    /// <summary>
+    /// Chart Page class.
+    /// </summary>
     public sealed partial class ChartPage : Page, INotifyPropertyChanged
     {
-        private SampleOrder _selected;
+        private SampleOrder selected;
 
-        public SampleOrder Selected
-        {
-            get { return _selected; }
-            set { Set(ref _selected, value); }
-        }
-
-        public ObservableCollection<SampleOrder> SampleItems { get; private set; } = new ObservableCollection<SampleOrder>();
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChartPage"/> class.
+        /// </summary>
         public ChartPage()
         {
-            InitializeComponent();
-            Loaded += ChartPage_Loaded;
+            this.InitializeComponent();
+            this.Loaded += this.ChartPage_Loaded;
+        }
+
+        /// <summary>
+        /// Property Changed.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Gets sample Items.
+        /// </summary>
+        public ObservableCollection<SampleOrder> SampleItems { get; private set; } = new ObservableCollection<SampleOrder>();
+
+        /// <summary>
+        /// Gets or sets selected.
+        /// </summary>
+        public SampleOrder Selected
+        {
+            get { return this.selected; }
+            set { this.Set(ref this.selected, value); }
         }
 
         private async void ChartPage_Loaded(object sender, RoutedEventArgs e)
         {
-            SampleItems.Clear();
+            this.SampleItems.Clear();
 
-            var data = await SampleDataService.GetMasterDetailDataAsync();
+            var data = await SampleDataService.GetMasterDetailDataAsync().ConfigureAwait(true);
 
             foreach (var item in data)
             {
-                SampleItems.Add(item);
+                this.SampleItems.Add(item);
             }
 
-            if (MasterDetailsViewControl.ViewState == MasterDetailsViewState.Both)
+            if (this.MasterDetailsViewControl.ViewState == MasterDetailsViewState.Both)
             {
-                Selected = SampleItems.FirstOrDefault();
+                this.Selected = this.SampleItems.FirstOrDefault();
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void Set<T>(ref T storage, T value, [CallerMemberName]string propertyName = null)
+        private void Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
             if (Equals(storage, value))
             {
@@ -63,9 +74,9 @@ namespace HilresStock.Views
             }
 
             storage = value;
-            OnPropertyChanged(propertyName);
+            this.OnPropertyChanged(propertyName);
         }
 
-        private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        private void OnPropertyChanged(string propertyName) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

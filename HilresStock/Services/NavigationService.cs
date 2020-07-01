@@ -1,46 +1,71 @@
-﻿using System;
-
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media.Animation;
-using Windows.UI.Xaml.Navigation;
+﻿// <copyright file="NavigationService.cs" company="Hilres">
+// Copyright (c) Hilres. All rights reserved.
+// </copyright>
 
 namespace HilresStock.Services
 {
+    using System;
+    using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Media.Animation;
+    using Windows.UI.Xaml.Navigation;
+
+    /// <summary>
+    /// Navigation Service class.
+    /// </summary>
     public static class NavigationService
     {
+        private static Frame frame;
+        private static object lastParamUsed;
+
+        /// <summary>
+        /// Navigated event.
+        /// </summary>
         public static event NavigatedEventHandler Navigated;
 
+        /// <summary>
+        /// Navigation has failed event.
+        /// </summary>
         public static event NavigationFailedEventHandler NavigationFailed;
 
-        private static Frame _frame;
-        private static object _lastParamUsed;
-
+        /// <summary>
+        /// Gets or sets frame.
+        /// </summary>
         public static Frame Frame
         {
             get
             {
-                if (_frame == null)
+                if (frame == null)
                 {
-                    _frame = Window.Current.Content as Frame;
+                    frame = Window.Current.Content as Frame;
                     RegisterFrameEvents();
                 }
 
-                return _frame;
+                return frame;
             }
 
             set
             {
                 UnregisterFrameEvents();
-                _frame = value;
+                frame = value;
                 RegisterFrameEvents();
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether can go back.
+        /// </summary>
         public static bool CanGoBack => Frame.CanGoBack;
 
+        /// <summary>
+        /// Gets a value indicating whether can go forward.
+        /// </summary>
         public static bool CanGoForward => Frame.CanGoForward;
 
+        /// <summary>
+        /// Go back one frame.
+        /// </summary>
+        /// <returns>True if went back one frame.</returns>
         public static bool GoBack()
         {
             if (CanGoBack)
@@ -52,17 +77,27 @@ namespace HilresStock.Services
             return false;
         }
 
+        /// <summary>
+        /// Go forward on frame.
+        /// </summary>
         public static void GoForward() => Frame.GoForward();
 
+        /// <summary>
+        /// Navigate to a frame.
+        /// </summary>
+        /// <param name="pageType">Page type.</param>
+        /// <param name="parameter">Parameter.</param>
+        /// <param name="infoOverride">NavigationTransitionInfo.</param>
+        /// <returns>True if successful.</returns>
         public static bool Navigate(Type pageType, object parameter = null, NavigationTransitionInfo infoOverride = null)
         {
             // Don't open the same page multiple times
-            if (Frame.Content?.GetType() != pageType || (parameter != null && !parameter.Equals(_lastParamUsed)))
+            if (Frame.Content?.GetType() != pageType || (parameter != null && !parameter.Equals(lastParamUsed)))
             {
                 var navigationResult = Frame.Navigate(pageType, parameter, infoOverride);
                 if (navigationResult)
                 {
-                    _lastParamUsed = parameter;
+                    lastParamUsed = parameter;
                 }
 
                 return navigationResult;
@@ -73,25 +108,38 @@ namespace HilresStock.Services
             }
         }
 
+        /// <summary>
+        /// Navigate to a frame.
+        /// </summary>
+        /// <typeparam name="T">Page type.</typeparam>
+        /// <param name="parameter">Parameter.</param>
+        /// <param name="infoOverride">NavigationTransitionInfo.</param>
+        /// <returns>True if successful.</returns>
         public static bool Navigate<T>(object parameter = null, NavigationTransitionInfo infoOverride = null)
             where T : Page
             => Navigate(typeof(T), parameter, infoOverride);
 
+        /// <summary>
+        /// Register Frame Events.
+        /// </summary>
         private static void RegisterFrameEvents()
         {
-            if (_frame != null)
+            if (frame != null)
             {
-                _frame.Navigated += Frame_Navigated;
-                _frame.NavigationFailed += Frame_NavigationFailed;
+                frame.Navigated += Frame_Navigated;
+                frame.NavigationFailed += Frame_NavigationFailed;
             }
         }
 
+        /// <summary>
+        /// Unregister Frame Events.
+        /// </summary>
         private static void UnregisterFrameEvents()
         {
-            if (_frame != null)
+            if (frame != null)
             {
-                _frame.Navigated -= Frame_Navigated;
-                _frame.NavigationFailed -= Frame_NavigationFailed;
+                frame.Navigated -= Frame_Navigated;
+                frame.NavigationFailed -= Frame_NavigationFailed;
             }
         }
 

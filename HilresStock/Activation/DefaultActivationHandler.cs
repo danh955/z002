@@ -1,21 +1,35 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using HilresStock.Services;
-
-using Windows.ApplicationModel.Activation;
+﻿// <copyright file="DefaultActivationHandler.cs" company="Hilres">
+// Copyright (c) Hilres. All rights reserved.
+// </copyright>
 
 namespace HilresStock.Activation
 {
+    using System;
+    using System.Threading.Tasks;
+    using HilresStock.Services;
+    using Windows.ApplicationModel.Activation;
+
+    /// <summary>
+    /// Default Activation Handler class.
+    /// </summary>
     internal class DefaultActivationHandler : ActivationHandler<IActivatedEventArgs>
     {
-        private readonly Type _navElement;
+        private readonly Type navElement;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultActivationHandler"/> class.
+        /// </summary>
+        /// <param name="navElement">Navagation type element.</param>
         public DefaultActivationHandler(Type navElement)
         {
-            _navElement = navElement;
+            this.navElement = navElement;
         }
 
+        /// <summary>
+        /// Handle Internal Async.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>Task.</returns>
         protected override async Task HandleInternalAsync(IActivatedEventArgs args)
         {
             // When the navigation stack isn't restored, navigate to the first page and configure
@@ -26,14 +40,19 @@ namespace HilresStock.Activation
                 arguments = launchArgs.Arguments;
             }
 
-            NavigationService.Navigate(_navElement, arguments);
-            await Task.CompletedTask;
+            NavigationService.Navigate(this.navElement, arguments);
+            await Task.CompletedTask.ConfigureAwait(true);
         }
 
+        /// <summary>
+        /// Can Handle Internal.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>True if can handle internal.</returns>
         protected override bool CanHandleInternal(IActivatedEventArgs args)
         {
             // None of the ActivationHandlers has handled the app activation
-            return NavigationService.Frame.Content == null && _navElement != null;
+            return NavigationService.Frame.Content == null && this.navElement != null;
         }
     }
 }

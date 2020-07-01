@@ -1,110 +1,64 @@
-﻿using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-using HilresStock.Helpers;
-using HilresStock.Services;
-
-using Windows.System;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Navigation;
-
-using WinUI = Microsoft.UI.Xaml.Controls;
+﻿// <copyright file="ShellPage.xaml.cs" company="Hilres">
+// Copyright (c) Hilres. All rights reserved.
+// </copyright>
 
 namespace HilresStock.Views
 {
-    // TODO WTS: Change the icons and titles for all NavigationViewItems in ShellPage.xaml.
+    using System;
+    using System.ComponentModel;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using HilresStock.Helpers;
+    using HilresStock.Services;
+    using Windows.System;
+    using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Input;
+    using Windows.UI.Xaml.Navigation;
+    using WinUI = Microsoft.UI.Xaml.Controls;
+
+    /// <summary>
+    /// Shell page class.
+    /// </summary>
+    //// TODO WTS: Change the icons and titles for all NavigationViewItems in ShellPage.xaml.
     public sealed partial class ShellPage : Page, INotifyPropertyChanged
     {
-        private readonly KeyboardAccelerator _altLeftKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu);
-        private readonly KeyboardAccelerator _backKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.GoBack);
+        private readonly KeyboardAccelerator altLeftKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu);
+        private readonly KeyboardAccelerator backKeyboardAccelerator = BuildKeyboardAccelerator(VirtualKey.GoBack);
 
-        private bool _isBackEnabled;
-        private WinUI.NavigationViewItem _selected;
+        private bool isBackEnabled;
+        private WinUI.NavigationViewItem selected;
 
-        public bool IsBackEnabled
-        {
-            get { return _isBackEnabled; }
-            set { Set(ref _isBackEnabled, value); }
-        }
-
-        public WinUI.NavigationViewItem Selected
-        {
-            get { return _selected; }
-            set { Set(ref _selected, value); }
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShellPage"/> class.
+        /// </summary>
         public ShellPage()
         {
-            InitializeComponent();
-            DataContext = this;
-            Initialize();
+            this.InitializeComponent();
+            this.DataContext = this;
+            this.Initialize();
         }
 
-        private void Initialize()
+        /// <inheritdoc/>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the back button is Enabled.
+        /// </summary>
+        public bool IsBackEnabled
         {
-            NavigationService.Frame = shellFrame;
-            NavigationService.NavigationFailed += Frame_NavigationFailed;
-            NavigationService.Navigated += Frame_Navigated;
-            navigationView.BackRequested += OnBackRequested;
+            get { return this.isBackEnabled; }
+            set { this.Set(ref this.isBackEnabled, value); }
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Gets or sets selected.
+        /// </summary>
+        public WinUI.NavigationViewItem Selected
         {
-            // Keyboard accelerators are added here to avoid showing 'Alt + left' tooltip on the page.
-            // More info on tracking issue https://github.com/Microsoft/microsoft-ui-xaml/issues/8
-            KeyboardAccelerators.Add(_altLeftKeyboardAccelerator);
-            KeyboardAccelerators.Add(_backKeyboardAccelerator);
-            await Task.CompletedTask;
-        }
-
-        private void Frame_NavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw e.Exception;
-        }
-
-        private void Frame_Navigated(object sender, NavigationEventArgs e)
-        {
-            IsBackEnabled = NavigationService.CanGoBack;
-            if (e.SourcePageType == typeof(SettingsPage))
-            {
-                Selected = navigationView.SettingsItem as WinUI.NavigationViewItem;
-                return;
-            }
-
-            Selected = navigationView.MenuItems
-                            .OfType<WinUI.NavigationViewItem>()
-                            .FirstOrDefault(menuItem => IsMenuItemForPageType(menuItem, e.SourcePageType));
-        }
-
-        private bool IsMenuItemForPageType(WinUI.NavigationViewItem menuItem, Type sourcePageType)
-        {
-            var pageType = menuItem.GetValue(NavHelper.NavigateToProperty) as Type;
-            return pageType == sourcePageType;
-        }
-
-        private void OnItemInvoked(WinUI.NavigationView sender, WinUI.NavigationViewItemInvokedEventArgs args)
-        {
-            if (args.IsSettingsInvoked)
-            {
-                NavigationService.Navigate(typeof(SettingsPage));
-                return;
-            }
-
-            var item = navigationView.MenuItems
-                            .OfType<WinUI.NavigationViewItem>()
-                            .First(menuItem => (string)menuItem.Content == (string)args.InvokedItem);
-            var pageType = item.GetValue(NavHelper.NavigateToProperty) as Type;
-            NavigationService.Navigate(pageType);
-        }
-
-        private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)
-        {
-            NavigationService.GoBack();
+            get { return this.selected; }
+            set { this.Set(ref this.selected, value); }
         }
 
         private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)
@@ -125,9 +79,80 @@ namespace HilresStock.Views
             args.Handled = result;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>
+        /// Is Menu Item For Page Type.
+        /// </summary>
+        /// <param name="menuItem">WinUI.NavigationViewItem.</param>
+        /// <param name="sourcePageType">Type.</param>
+        /// <returns>True if menu item is the same as the source page.</returns>
+        private static bool IsMenuItemForPageType(WinUI.NavigationViewItem menuItem, Type sourcePageType)
+        {
+            var pageType = menuItem.GetValue(NavHelper.NavigateToProperty) as Type;
+            return pageType == sourcePageType;
+        }
 
-        private void Set<T>(ref T storage, T value, [CallerMemberName]string propertyName = null)
+        private void Initialize()
+        {
+            NavigationService.Frame = this.shellFrame;
+            NavigationService.NavigationFailed += this.Frame_NavigationFailed;
+            NavigationService.Navigated += this.Frame_Navigated;
+            this.navigationView.BackRequested += this.OnBackRequested;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            // Keyboard accelerators are added here to avoid showing 'Alt + left' tooltip on the page.
+            // More info on tracking issue https://github.com/Microsoft/microsoft-ui-xaml/issues/8
+            this.KeyboardAccelerators.Add(this.altLeftKeyboardAccelerator);
+            this.KeyboardAccelerators.Add(this.backKeyboardAccelerator);
+            await Task.CompletedTask.ConfigureAwait(true);
+        }
+
+        private void Frame_NavigationFailed(object sender, NavigationFailedEventArgs e)
+        {
+            throw e.Exception;
+        }
+
+        private void Frame_Navigated(object sender, NavigationEventArgs e)
+        {
+            this.IsBackEnabled = NavigationService.CanGoBack;
+            if (e.SourcePageType == typeof(SettingsPage))
+            {
+                this.Selected = this.navigationView.SettingsItem as WinUI.NavigationViewItem;
+                return;
+            }
+
+            this.Selected = this.navigationView.MenuItems
+                            .OfType<WinUI.NavigationViewItem>()
+                            .FirstOrDefault(menuItem => IsMenuItemForPageType(menuItem, e.SourcePageType));
+        }
+
+        /// <summary>
+        /// On Item Invoked event.
+        /// </summary>
+        /// <param name="sender">WinUI.NavigationView.</param>
+        /// <param name="args">Command line arguments.</param>
+        private void OnItemInvoked(WinUI.NavigationView sender, WinUI.NavigationViewItemInvokedEventArgs args)
+        {
+            if (args.IsSettingsInvoked)
+            {
+                NavigationService.Navigate(typeof(SettingsPage));
+                return;
+            }
+
+            var item = this.navigationView.MenuItems
+                            .OfType<WinUI.NavigationViewItem>()
+                            .First(menuItem => (string)menuItem.Content == (string)args.InvokedItem);
+            var pageType = item.GetValue(NavHelper.NavigateToProperty) as Type;
+            NavigationService.Navigate(pageType);
+        }
+
+        private void OnBackRequested(WinUI.NavigationView sender, WinUI.NavigationViewBackRequestedEventArgs args)
+        {
+            NavigationService.GoBack();
+        }
+
+        private void Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
             if (Equals(storage, value))
             {
@@ -135,9 +160,9 @@ namespace HilresStock.Views
             }
 
             storage = value;
-            OnPropertyChanged(propertyName);
+            this.OnPropertyChanged(propertyName);
         }
 
-        private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        private void OnPropertyChanged(string propertyName) => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
